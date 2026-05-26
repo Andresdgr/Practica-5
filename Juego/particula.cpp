@@ -3,13 +3,10 @@
 Particula::Particula(double x, double y, double vx, double vy, double m, double r, QGraphicsItem *parent)
     : QGraphicsEllipseItem(parent), posicion(x, y), velocidad(vx, vy), masa(m), radio(r)
 {
-    setRect(-radio, -radio, radio * 2, radio * 2);
-
-    // Se sicroniza la posición gráfica inicial con la posición matemática
-    setPos(x, y);
-
-    setBrush(Qt::red);
-    setPen(QPen(Qt::black));
+    setRect(-radio, -radio, radio * 2, radio * 2); // Define el tamaño de la elipse
+    setPos(x, y);                                  // Posición inicial en la escena
+    setBrush(Qt::red);                             // Color de relleno
+    setPen(QPen(Qt::black));                       // Color del borde
 }
 
 void Particula::actualizarPosicion(double dt) {
