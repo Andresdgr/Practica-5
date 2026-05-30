@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , dt(0.1) // Diferencial de tiempo
+    , tiempoSimulado(0.0)
 {
     ui->setupUi(this);
 
@@ -17,11 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Instanciar y agregar elementos a la escena
     // Usamos 'new' para crear los objetos dinámicamente
-    Particula *p1 = new Particula(100, 100, 0, 5, 1.0, 10.0);
+    Particula *p1 = new Particula(100, 100, 13, 5, 1.0, 10.0);
     scene->addItem(p1);
     particulas.push_back(p1);
 
-    Particula *p2 = new Particula(100, 400, 0, -5, 1.5, 10.0);
+    Particula *p2 = new Particula(100, 400, -3, 20, 1.5, 10.0);
     scene->addItem(p2);
     particulas.push_back(p2);
 
@@ -37,18 +38,43 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Arrancamos el temporizador para que se ejecute cada 16 milisegundos (~60 FPS)
     timer->start(16);
+
+    archivoSalida.open("simulacion_datos.txt");
+    if (archivoSalida.is_open()) {
+        archivoSalida << "Tiempo\tEvento\tID\tPos_X\tPos_Y\n";
+    }
+
+    timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &MainWindow::actualizarFisica);
+    timer->start(16);
 }
 
 MainWindow::~MainWindow()
 {
+    // Asegurar el cierre del archivo
+    if (archivoSalida.is_open()) {
+        archivoSalida.close();
+    }
     delete ui;
 }
 
 void MainWindow::actualizarFisica()
 {
-    // Actualizar posiciones matemáticas y gráficas
+    tiempoSimulado += dt; // Actualizar el reloj de la simulación
+
+    int id = 0; // Identificador simple por posición en el vector
+
     for (Particula* p : particulas) {
-        p->actualizarPosicion(dt);
+        p->actualizarPosicion(dt);     // Actualizar posiciones matemáticas y gráficas
+
+        // Exportar los datos de movimiento
+        if (archivoSalida.is_open()) {
+            archivoSalida << tiempoSimulado << "\tMovimiento\t"
+                          << id << "\t"
+                          << p->getPosicion().getX() << "\t"
+                          << p->getPosicion().getY() << "\n";
+        }
+        id++;
     }
 
     // Verificar choques
@@ -67,11 +93,13 @@ void MainWindow::verificarColisiones()
         // Se resta o suma el radio para que rebote el borde, no el centro
         if (pos.getX() - r <= 0 || pos.getX() + r >= scene->width()) {
             p->setVelocidad(-vel.getX(), vel.getY());
+            archivoSalida << tiempoSimulado << "\tColision_Pared_X\t-\t" << pos.getX() << "\t" << pos.getY() << "\n";
         }
 
         // Techo y suelo (Eje Y)
         if (pos.getY() - r <= 0 || pos.getY() + r >= scene->height()) {
             p->setVelocidad(vel.getX(), -vel.getY());
+            archivoSalida << tiempoSimulado << "\tColision_Pared_Y\t-\t" << pos.getX() << "\t" << pos.getY() << "\n";
         }
     }
 
@@ -115,6 +143,10 @@ void MainWindow::verificarColisiones()
                 if (productoPunto < 0) {
                     double e = obs->getE();
 
+                    if (archivoSalida.is_open()) {
+                        archivoSalida << tiempoSimulado << "\tColision_Obstaculo\t-\t" << pos.getX() << "\t" << pos.getY() << "\n";
+                    }
+
                     if (std::abs(distX) > std::abs(distY)) {
                         p->setVelocidad(-vel.getX() * e, vel.getY()); // Rebote horizontal
                     } else {
@@ -156,8 +188,13 @@ void MainWindow::verificarColisiones()
                 // Propiedades del nuevo cuerpo
                 double nuevoX = (p1->getPosicion().getX() + p2->getPosicion().getX()) / 2.0; // Aparece en el medio
                 double nuevoY = (p1->getPosicion().getY() + p2->getPosicion().getY()) / 2.0;
+
+                if (archivoSalida.is_open()) {
+                    archivoSalida << tiempoSimulado << "\tColision_Inelastica\t-\t" << nuevoX << "\t" << nuevoY << "\n";
+                }
+
                 // Para conservar una proporción visual lógica, sumamos las áreas y sacamos el nuevo radio
-                double nuevoRadio = p1->getRadio() + p1->getRadio() / 3;
+                double nuevoRadio = p1->getRadio() + p1->getRadio() / 4;
 
                 // Creamos el nuevo objeto dinámico
                 Particula* pNueva = new Particula(nuevoX, nuevoY, vxf, vyf, masaTotal, nuevoRadio);

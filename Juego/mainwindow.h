@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <QTimer>
 #include <vector>
+#include <fstream>
 
 #include "particula.h"
 #include "obstaculo.h"
@@ -36,7 +37,10 @@ private:
 
     double dt; // Diferencial de tiempo de la simulación
 
-    // Método interno para limpiar el código de actualización
+    // Añadir estas dos líneas:
+    double tiempoSimulado;
+    std::ofstream archivoSalida;
+
     void verificarColisiones();
 };
 #endif // MAINWINDOW_H
