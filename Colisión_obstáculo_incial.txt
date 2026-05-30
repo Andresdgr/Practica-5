@@ -1,0 +1,10 @@
+partícula
+                       ●
+                       ↑
+                 distY │  
+                       │
+    ┌────────────┤testX,testY
+    │               │
+    │ obstáculo     │← distX 
+    │               │
+    └────────────┘
