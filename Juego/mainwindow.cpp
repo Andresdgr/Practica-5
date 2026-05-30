@@ -18,11 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Instanciar y agregar elementos a la escena
     // Usamos 'new' para crear los objetos dinámicamente
-    Particula *p1 = new Particula(100, 100, 13, 5, 1.0, 10.0);
+    Particula *p1 = new Particula(100, 100, 50, 100, 10.0, 10.0);
     scene->addItem(p1);
     particulas.push_back(p1);
 
-    Particula *p2 = new Particula(100, 400, -3, 20, 1.5, 10.0);
+    Particula *p2 = new Particula(100, 400, -30, 40, 10.5, 10.0);
     scene->addItem(p2);
     particulas.push_back(p2);
 
